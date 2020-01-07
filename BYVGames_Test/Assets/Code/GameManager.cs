@@ -1,13 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class BulletManager : MonoBehaviour {
+public class GameManager : MonoBehaviour {
 
     //----Overhead----
     public GameObject pref_bullet;
+    public GameObject m_player1;
+    public GameObject m_player2;
+    private int[] PlayerHealth = new int[2] { 5, 5 };
+    
 
     private List<GameObject> list_bullets = new List<GameObject>();
+
+    void Start()
+    {
+    }
 
     public void Shoot(GameObject gun)
     {
@@ -18,16 +27,27 @@ public class BulletManager : MonoBehaviour {
     }
     void Update()
     {
-        /*Mouse Testing 
+        ///Mouse Testing 
         if (Input.GetMouseButtonDown(0))
         {
-            Vector3 pos = Input.mousePosition;
-            pos.z = 1;
-            pos = Camera.main.ScreenToWorldPoint(pos);
+            if (EventSystem.current.IsPointerOverGameObject())
+                return;
 
-            ActivateBullet(pos, Quaternion.identity);
+            var pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            
+            if (pos.x < 0)
+            {
+                //JumpLeft
+                m_player1.GetComponent<PlayerController>().Jump();
+                
+            }
+            else    
+            {
+                m_player2.GetComponent<PlayerController>().Jump();
+                //JumpRight
+            }
         }
-        */
+        
         //Touch Input Manager
         foreach (Touch touch in Input.touches)
         {
@@ -77,6 +97,17 @@ public class BulletManager : MonoBehaviour {
         obj.SetActive(false);
         list_bullets.Add(obj);
         return obj;
+    }
+
+    public void PlayerGotShot(int dmg, int num)
+    {
+        Debug.Log("Got it so far");
+        PlayerHealth[num] -= dmg;
+        if (PlayerHealth[num] < 1)
+        {
+            //Player num is dead
+            Debug.Log("Murder call the police !");
+        }
     }
 
 }

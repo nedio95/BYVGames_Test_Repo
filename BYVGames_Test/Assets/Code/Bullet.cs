@@ -2,32 +2,44 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Bullet : MonoBehaviour {
+public class Bullet : MonoBehaviour 
+{
 
     //---Overhead---
-    private float bulletSpeed = 250f;
+    static private float m_bulletSpeed = 250f;
+    private bool m_isLethal = true;
 
-    void Start()
-    {
-       
-    }
-
-    void Update()
-    {
-      
-    }
-
+    private AudioSource audSrs;
 
     void OnCollisionEnter2D(Collision2D col)
     {
-        Debug.Log("STOP");
-        gameObject.SetActive(false);
+        GameObject obj = col.gameObject;
+        if (obj.name == "Bullet(Clone)")
+        {
+            m_isLethal = false;
+            GetComponent<Rigidbody2D>().gravityScale = 1f;
+            return;
+        }
+        else
+        {
+            DeactivateThis();
+        }
     }
 
     void OnEnable()
     {
-        Debug.Log("BAng");
+        if(!audSrs)audSrs = GetComponent<AudioSource>();
+        audSrs.Play();
+        m_isLethal = true;
         Rigidbody2D body = GetComponent<Rigidbody2D>();
-        body.AddForce(transform.right * bulletSpeed);
+        body.gravityScale = 0f;
+        body.AddForce(transform.right * m_bulletSpeed);
     }
+
+    void DeactivateThis()
+    {
+        gameObject.SetActive(false);
+    }
+
+    
 }

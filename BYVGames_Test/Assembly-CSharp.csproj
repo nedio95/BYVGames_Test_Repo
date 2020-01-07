@@ -47,8 +47,10 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Code\Bullet.cs" />
-     <Compile Include="Assets\Code\BulletManager.cs" />
+     <Compile Include="Assets\Code\CleanupSplatter.cs" />
+     <Compile Include="Assets\Code\GameManager.cs" />
      <Compile Include="Assets\Code\Joints.cs" />
+     <Compile Include="Assets\Code\PlayerController.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
