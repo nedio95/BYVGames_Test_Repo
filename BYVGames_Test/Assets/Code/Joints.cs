@@ -8,7 +8,25 @@ public class Joints : MonoBehaviour {
     public int DamageToDeal;
 
     private bool m_canBeDamaged = true;
+    private bool isJoint = false;
+    private Vector3 m_jointAnchor;
 
+
+    void Start()
+    {
+        if (gameObject.GetComponent<HingeJoint2D>())
+        {
+            isJoint = true;
+            m_jointAnchor = gameObject.GetComponent<HingeJoint2D>().anchor;
+        }
+    }
+    void Update()
+    {
+        if(isJoint)
+            gameObject.GetComponent<HingeJoint2D>().anchor = m_jointAnchor;
+    }   
+
+    //This is for explosions
     public void DestroyJoint()
     {
         Destroy(gameObject.GetComponent<HingeJoint2D>());
@@ -26,7 +44,9 @@ public class Joints : MonoBehaviour {
         GameObject obj = col.gameObject;
         if (obj.name == "Bullet(Clone)")
         {
-            rootObj.GetComponent<PlayerController>().GotHit(DamageToDeal);
+            if (!obj.GetComponent<Bullet>().IsBulletLethal()) 
+                return;
+            rootObj.GetComponent<PlayerController>().GotHit(DamageToDeal, gameObject.transform);
         }
         
     }

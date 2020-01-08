@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     //----Overhead----
     public GameObject TheGameManager;
+    private GameManager TheGameManagerScript;
     public GameObject pref_blood;
     public int PlayerNumber;
 
@@ -24,11 +25,16 @@ public class PlayerController : MonoBehaviour
     private Vector3 m_groundPos;
     private float m_groundY;
 
-    
+    private AudioSource m_audSrs;
+    public AudioClip aud_Grunt;
+
+    public List<GameObject> HealthSprites;
 
     void Start()
     {
+        m_audSrs = GetComponent<AudioSource>();
         Anim = GetComponent<Animator>();
+        TheGameManagerScript = TheGameManager.GetComponent<GameManager>();
 
         m_groundPos = transform.position;
         m_groundY = m_groundPos.y;
@@ -58,20 +64,31 @@ public class PlayerController : MonoBehaviour
    
     void OnCollisionEnter2D(Collision2D col)
     {
+        if(TheGameManagerScript.IsGameOver()) return;
+
         Debug.Log("SomethingGotHit");
         GameObject obj = col.gameObject;
         if (obj.name == m_bulletName)
         {
-            GotHit(DamageToDeal);
             Transform ttrans = col.gameObject.transform;
-            GameObject blood = Instantiate(pref_blood, ttrans.position, transform.rotation * Quaternion.Euler(0f, 90f, 0f));
+            GotHit(DamageToDeal, ttrans);
         }
     } //ttrans.rotation
 
-    public void GotHit(int dmg)
+    public void GotHit(int dmg, Transform trans)
     {
-        TheGameManager.GetComponent<GameManager>().PlayerGotShot(dmg, PlayerNumber-1);
+        if (TheGameManagerScript.IsGameOver()) return;    
+
+        TheGameManagerScript.PlayerGotShot(dmg, PlayerNumber);
+        //vvvv This fixes/avoids a bug with the hinge joints vvvv
+        //Not a good solutuion but it works for a quick fix
+        float angleOfSplatter = 90f;
+        if (trans.position.x > 0) angleOfSplatter += 180f; 
+        //^^^^ ---- ^^^^
+        GameObject blood = Instantiate(pref_blood, trans.position, transform.rotation * Quaternion.Euler(0f, angleOfSplatter, 0f));
+        m_audSrs.PlayOneShot(aud_Grunt, 0.5f);
     }
+    
 
     public void Jump()
     {
@@ -96,5 +113,20 @@ public class PlayerController : MonoBehaviour
     {
         m_currentJumpHeight += m_addJumpHeight;
         m_currentSpeed = m_jumpSpeed;
+    }
+
+    public void ManageHealthSprites(int hp)
+    {
+        for (int i = 0; i < 5; i++)
+        {
+            if (i >= hp)
+            {
+                HealthSprites[i].SetActive(false);
+            }
+            else
+            {
+                HealthSprites[i].SetActive(true);
+            }
+        }
     }
 }
