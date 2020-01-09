@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class Joints : MonoBehaviour {
 
-    //----Overhead---
+    //Unity Editor Setup 
     public int DamageToDeal;
 
+    // Overhead
     private bool m_canBeDamaged = true;
     private bool isJoint = false;
     private Vector3 m_jointAnchor;
@@ -14,6 +15,7 @@ public class Joints : MonoBehaviour {
 
     void Start()
     {
+        //This fixes a very annoying bug with the joints
         if (gameObject.GetComponent<HingeJoint2D>())
         {
             isJoint = true;
@@ -22,6 +24,7 @@ public class Joints : MonoBehaviour {
     }
     void Update()
     {
+        //This fixes a very annoying bug with the joints
         if(isJoint)
             gameObject.GetComponent<HingeJoint2D>().anchor = m_jointAnchor;
     }   
@@ -29,10 +32,12 @@ public class Joints : MonoBehaviour {
     //This is for explosions
     public void DestroyJoint()
     {
+        //This should be called when the player is exploded so the joints separate from the main body
         Destroy(gameObject.GetComponent<HingeJoint2D>());
         transform.parent = null;
     }
 
+    //Get hit by a bullet, tell the mean bullet to the papa object
     void OnCollisionEnter2D(Collision2D col)
     {
         if (!m_canBeDamaged) 

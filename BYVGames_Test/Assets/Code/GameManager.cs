@@ -7,43 +7,43 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
-    //----Overhead----
-    private bool GameOver = false;
-    public GameObject pref_bullet;
-    public GameObject[] m_player;
+    //vvvv SETUP vvvv
     private int[] PlayerHealth = new int[2] { 5, 5 };
-
-    private List<GameObject> list_bullets = new List<GameObject>();
-
+    private int m_playerMaxHealth = 5;
     private float m_reloadTime = 1f;
     private float[] m_reloadPlayer = new float[2] { 0f, 0f };
-
-    public GameObject GameOverMenu;
-    public Text txt_gameOver;
-
     private string[] str_playerWon = { "Left", "Right" };
     private string str_gameOver = " player won the game!";
-
-    private bool m_activeBonus = false;
     private float m_bonusRespawnTimeMax = 10f;
     private float m_bonusRespawnTimeCurrent = 10f;
+    //^^^^----^^^^
+
+    //vvvv Unity Editor SETUP vvvv
+    public GameObject pref_bullet;
+    public GameObject[] m_player;
+    public GameObject GameOverMenu;
+    public Text txt_gameOver;
     public List<GameObject> Bonuses;
-    private Vector3 m_bonusSpawnPos = new Vector3(0, 10f, 0); 
+    //^^^^----^^^^
 
+    //----Overhead----
+    private bool GameOver = false;
+    private List<GameObject> list_bullets = new List<GameObject>();
+    private bool m_activeBonus = false;  
+    //^^^^----^^^^
 
+    //Public call for other objects to check if the game is over; This should be static...
     public bool IsGameOver()
     {
         return GameOver;
     }
 
-    void Start()
-    {
-    }
-
+    //Shoots a bullet from a players'gun
     public void Shoot(GameObject gun)
     {
         if (GameOver) return;
-               
+
+        //Bullets are pooled; First take some variables requred for bullet instantiation e.g. position and rotation
         Vector3 pos = gun.transform.position;
         int whichPlayer = 0;
         if (pos.x > 0) whichPlayer = 1;
@@ -60,6 +60,18 @@ public class GameManager : MonoBehaviour {
     void Update()
     {
         if (GameOver) return;
+
+        InputManager();
+
+        PlayerManagement();
+
+        BonusesManagement();
+    }
+
+    //Manages mouse clicks and touches
+    void InputManager()
+    { 
+#if UNITY_EDITOR
         ///Mouse Testing 
         if (Input.GetMouseButtonDown(0))
         {
@@ -72,7 +84,8 @@ public class GameManager : MonoBehaviour {
             if (pos.x > 0) playerNum = 1; //This test scene allows for the position to be used to check which player is affected
             m_player[playerNum].GetComponent<PlayerController>().Jump();
         }
-
+#endif
+#if UNITY_ANDROID || UNITY_IOS
         //Touch Input Manager
         foreach (Touch touch in Input.touches)
         {
@@ -82,31 +95,40 @@ public class GameManager : MonoBehaviour {
             }
 
         }
+#endif
+    }
 
+    void PlayerManagement()
+    {
         // Player reload time
         for (int i = 0; i < 2; i++)
         {
             if (m_reloadPlayer[i] > 0) m_reloadPlayer[i] -= Time.deltaTime;
 
         }
+    }
 
+    void BonusesManagement()
+    {
         //Bonus spawn
         if (!m_activeBonus && m_bonusRespawnTimeCurrent < 0f)
         {
             //Spawn bonus
-            //m_activeBonus = true;
-            //int r = Random.Range(0, 4);
-            //Bonuses[r].SetActive(true);
-            //Bonuses[r].transform.position = m_bonusSpawnPos;
-            //Bonuses[r].transform.rotation = Quaternion.identity;
-            //Bonuses[r].GetComponent<BonusesScript>().DeactivateBonus();
-            
+            m_activeBonus = true;
+            int r = Random.Range(0, Bonuses.Count);
+            Bonuses[r].GetComponent<BonusesScript>().ResetBonus();
         }
         else if (!m_activeBonus)
         {
             //reduce cooldown
             m_bonusRespawnTimeCurrent -= Time.deltaTime;
         }
+    }
+
+    public void SetReadyForNewBonus()
+    {
+        m_bonusRespawnTimeCurrent = m_bonusRespawnTimeMax;
+        m_activeBonus = false;
     }
 
     //---BULLET MANAGEMENT----
@@ -145,7 +167,7 @@ public class GameManager : MonoBehaviour {
 
         activateThisBullet.transform.position = pos;
         //vvvv This fixes a bug with the hinge joints vvvv
-        //Not a good solutuion but it works for a quick fix
+        //Not a good solutuion but it works for a cheap dirty quick fix
         if (pos.x > 0) rot.y = 180f;
         // ^^^^ ---- ^^^^
         activateThisBullet.transform.rotation = rot;
@@ -165,6 +187,7 @@ public class GameManager : MonoBehaviour {
         if (GameOver) return;
 
         PlayerHealth[num] -= dmg;
+        if (PlayerHealth[num] > m_playerMaxHealth) PlayerHealth[num] = m_playerMaxHealth; // This prevents overheal
         m_player[num].GetComponent<PlayerController>().ManageHealthSprites(PlayerHealth[num]);
         if (PlayerHealth[num] < 1)
         {
@@ -175,6 +198,7 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    //In case something else need player HP
     public int GetPlayerHP(int num)
     {
         return PlayerHealth[num];
@@ -201,13 +225,14 @@ public class GameManager : MonoBehaviour {
 
     void GameOverSequence(int pNum)
     {
+        //Changes game over text and activates menu
         str_gameOver = str_playerWon[pNum] + str_gameOver;
 
         GameOverMenu.SetActive(true);
         txt_gameOver.text = str_gameOver;
-        
     }
 
+    //Scene manager
     public void LoadScene(int sNum)
     {
         switch (sNum)
@@ -223,5 +248,10 @@ public class GameManager : MonoBehaviour {
             default:
                 break;
         }
+    }
+
+    public void PlayerHasBeenExploded(GameObject expPlayer)
+    { 
+        //When a player explodes
     }
 }

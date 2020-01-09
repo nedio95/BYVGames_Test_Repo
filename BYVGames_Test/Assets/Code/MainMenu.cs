@@ -7,6 +7,7 @@ public class MainMenu : MonoBehaviour
 {
     public void ButtonClick(int num)
     {
+        // Just a menu buttons manager, bothing interesting...
         switch (num)
         {
             case 0:
